@@ -1,0 +1,1230 @@
+{
+  "name": "Forex Trend Analysis Bot with Discord Alerts",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1401898745477464086",
+          "mode": "list",
+          "cachedResultName": "Requiem",
+          "cachedResultUrl": "https://discord.com/channels/1401898745477464086"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1448314315408146494",
+          "mode": "list",
+          "cachedResultName": "trend-review",
+          "cachedResultUrl": "https://discord.com/channels/1401898745477464086/1448314315408146494"
+        },
+        "content": "={{ $json.symbol }} is in a {{ $json.trend }} trend. Support level is at {{ $json.support }} and resistance level is at {{ $json.resistance }}.\n\nRequiem - {{ $now.format('hh:MM') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        176
+      ],
+      "id": "1c97fbdd-f6b8-489c-91da-c81cc49688eb",
+      "name": "Send a message1",
+      "webhookId": "ddfddd99-d186-44e4-a76e-19654ef04929",
+      "credentials": {
+        "discordBotApi": {
+          "id": "JYk8JN16vf4TvFFj",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fav-repo",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        560
+      ],
+      "id": "e446f92c-20b0-44e0-a661-6a61d3ec2ba9",
+      "name": "Webhook",
+      "webhookId": "bf040b99-b2e4-49d7-87a5-c0f716f1c49e"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.content.text }}",
+                    "rightValue": "x",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "48fa4d73-3229-4285-8b6a-aa79f58e7dd7"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ed9952b5-5c19-44b7-a9e1-2a375c741e3f",
+                    "leftValue": "={{ $json.body.content.text }}",
+                    "rightValue": "y",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "674d6ed2-e510-43e1-9576-1a24da0021a5",
+                    "leftValue": "={{ $json.body.content.text }}",
+                    "rightValue": "z",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        544
+      ],
+      "id": "e1fd7244-dacb-4e9e-a584-10fcabad4d38",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node\nconst items = $input.all();\nlet results = [];\n\nfor (const item of items) {\n  // Veri json.data içinden geliyorsa onu yakala\n  const mainData = item.json.data;\n\n  // Güvenlik kontrolü: data var mı ve içinde kline_list var mı?\n  if (!mainData || !mainData.kline_list || !Array.isArray(mainData.kline_list)) {\n    results.push({ \n      json: { \n        error: \"Veri json.data.kline_list içinde bulunamadı!\",\n        debug: item.json // Neyin geldiğini görmek için\n      } \n    });\n    continue;\n  }\n\n  const list = mainData.kline_list;\n\n  // 1. Değerleri sayıya çevirerek listele\n  const highs = list.map(k => parseFloat(k.high_price));\n  const lows = list.map(k => parseFloat(k.low_price));\n  const closes = list.map(k => parseFloat(k.close_price));\n\n  // 2. En büyük (Resistance) ve En küçük (Support) bul\n  const resistance = Math.max(...highs);\n  const support = Math.min(...lows);\n\n  // 3. Trend Ölçümü\n  const firstPrice = closes[0];\n  const lastPrice = closes[closes.length - 1];\n  \n  let trend = \"SIDEWAYS\";\n  if (lastPrice > firstPrice) trend = \"bullish\";\n  if (lastPrice < firstPrice) trend = \"bearish\";\n\n  // 4. Çıktı formatı\n  results.push({\n    json: {\n      symbol: mainData.code || \"AUDUSD\",\n      support: support,\n      resistance: resistance,\n      trend: trend,\n      last_price: lastPrice,\n      data_points: list.length\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        288
+      ],
+      "id": "547ffd0f-8522-47fa-997a-cd222e18552b",
+      "name": "Trend"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Edit Fields').item.json.channel }}",
+                    "rightValue": "x",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "6a44a6f8-dbe9-4b45-9b7f-c09e2f2754a5"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "46cd1556-e571-4338-92fc-1966872c762d",
+                    "leftValue": "={{ $('Edit Fields').item.json.channel }}",
+                    "rightValue": "y",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a04ea9bf-c13c-446c-a10c-f5e626574086",
+                    "leftValue": "={{ $('Edit Fields').item.json.channel }}",
+                    "rightValue": "z",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        544,
+        448
+      ],
+      "id": "f2ae1314-a30d-4014-bd08-0ae783940e2b",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node\nconst items = $input.all();\nlet results = [];\n\nfor (const item of items) {\n  // Veri json.data içinden geliyorsa onu yakala\n  const mainData = item.json.data;\n\n  // Güvenlik kontrolü\n  if (!mainData || !mainData.kline_list || !Array.isArray(mainData.kline_list)) {\n    results.push({ \n      json: { \n        error: \"Veri json.data.kline_list içinde bulunamadı!\",\n        debug: item.json \n      } \n    });\n    continue;\n  }\n\n  const list = mainData.kline_list;\n\n  // 1. Değerleri sayıya çevir\n  const highs = list.map(k => parseFloat(k.high_price));\n  const lows = list.map(k => parseFloat(k.low_price));\n  const closes = list.map(k => parseFloat(k.close_price));\n\n  // 2. Volatilite Hesaplamaları\n  \n  // A. Yüzdesel Değişim (Aralık bazlı)\n  const maxPrice = Math.max(...highs);\n  const minPrice = Math.min(...lows);\n  const rangeVolatility = ((maxPrice - minPrice) / minPrice) * 100;\n\n  // B. Ortalama Günlük Hareket (High - Low farklarının ortalaması)\n  const dailyRanges = highs.map((h, i) => h - lows[i]);\n  const avgMovement = dailyRanges.reduce((a, b) => a + b, 0) / dailyRanges.length;\n\n  // 3. Volatilite Durumu Belirleme (Örnek eşik değerleri)\n  let status = \"low\";\n  if (rangeVolatility > 2) status = \"medium\";\n  if (rangeVolatility > 5) status = \"high\";\n\n  // 4. Çıktı formatı\n  results.push({\n    json: {\n      symbol: mainData.code || \"AUDUSD\",\n      volatility_percent: parseFloat(rangeVolatility.toFixed(2)), // % cinsinden toplam oynaklık\n      avg_price_swing: parseFloat(avgMovement.toFixed(5)), // Ortalama mum boyu\n      volatility_status: status,\n      highest_point: maxPrice,\n      lowest_point: minPrice,\n      data_points: list.length\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        464
+      ],
+      "id": "a9d92a4b-5869-4741-aad1-706d3caf898d",
+      "name": "Volatility"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1401898745477464086",
+          "mode": "list",
+          "cachedResultName": "Requiem",
+          "cachedResultUrl": "https://discord.com/channels/1401898745477464086"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1448355464588038295",
+          "mode": "list",
+          "cachedResultName": "volatility-review",
+          "cachedResultUrl": "https://discord.com/channels/1401898745477464086/1448355464588038295"
+        },
+        "content": "=Volatility for {{ $json.symbol }} is currently {{ $json.volatility_status }}. The range is between high ({{ $json.highest_point }}) and low ({{ $json.lowest_point }}) prices.\n\nRequiem - {{ $now.format('hh:MM') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        656
+      ],
+      "id": "98f2ca43-57d8-4f56-b06d-60bbcc97d777",
+      "name": "Send a message",
+      "webhookId": "ddfddd99-d186-44e4-a76e-19654ef04929",
+      "credentials": {
+        "discordBotApi": {
+          "id": "JYk8JN16vf4TvFFj",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node - Professional Liquidity & Range Analysis\nconst items = $input.all();\nlet results = [];\n\nfor (const item of items) {\n  const mainData = item.json.data;\n\n  // Güvenlik kontrolü\n  if (!mainData || !mainData.kline_list || !Array.isArray(mainData.kline_list)) {\n    results.push({ \n      json: { \n        error: \"Veri json.data.kline_list içinde bulunamadı!\",\n        debug: item.json \n      } \n    });\n    continue;\n  }\n\n  const list = mainData.kline_list;\n\n  // 1. Sayısal Dönüşümler\n  const volumes = list.map(k => parseFloat(k.volume || 0));\n  const highs = list.map(k => parseFloat(k.high_price));\n  const lows = list.map(k => parseFloat(k.low_price));\n\n  // 2. Range (Aralık) ve Hacim Hesaplamaları\n  const maxPrice = Math.max(...highs);\n  const minPrice = Math.min(...lows);\n  const totalVolume = volumes.reduce((a, b) => a + b, 0);\n  const avgVolume = totalVolume / list.length;\n\n  // 3. Likidite Verimlilik Skoru (Hacim / Fiyat Aralığı)\n  const priceRange = maxPrice - minPrice;\n  const liquidityScore = priceRange !== 0 ? (totalVolume / priceRange) : 0;\n\n  // 4. Likidite Durumu Belirleme\n  let status = \"thin\";\n  if (liquidityScore > 2500) status = \"moderate\";\n  if (liquidityScore > 10000) status = \"deep\";\n\n  // 5. Çıktı Formatı\n  results.push({\n    json: {\n      symbol: mainData.code || \"AUDUSD\",\n      high: maxPrice,\n      low: minPrice,\n      liquidity_score: parseFloat(liquidityScore.toFixed(2)),\n      liquidity_status: status,\n      avg_volume: parseFloat(avgVolume.toFixed(2)),\n      total_volume: totalVolume,\n      data_points: list.length\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        672
+      ],
+      "id": "09cf048c-d174-4ea3-9799-9fca7f16906e",
+      "name": "Liquidity"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1401898745477464086",
+          "mode": "list",
+          "cachedResultName": "Requiem",
+          "cachedResultUrl": "https://discord.com/channels/1401898745477464086"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1448367230629711882",
+          "mode": "list",
+          "cachedResultName": "liquidity-review",
+          "cachedResultUrl": "https://discord.com/channels/1401898745477464086/1448367230629711882"
+        },
+        "content": "=Liquidity on {{ $json.symbol }} shows {{ $json.liquidity_status }} activity with close high and low prices (High: {{ $json.high }}, Low: {{ $json.low }}).\n\nRequiem - {{ $now.format('hh:MM') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        848
+      ],
+      "id": "f3359ea7-1921-4821-b0f3-79b3b98b487b",
+      "name": "Send a message2",
+      "webhookId": "ddfddd99-d186-44e4-a76e-19654ef04929",
+      "credentials": {
+        "discordBotApi": {
+          "id": "JYk8JN16vf4TvFFj",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook').item.json.body.channel.id }}",
+                    "rightValue": "1448314315408146494",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b7794911-88e3-470f-9420-2d3ae71525b7"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0487a018-3fe2-4fa1-899e-e30b7d8c58b2",
+                    "leftValue": "={{ $('Webhook').item.json.body.channel.id }}",
+                    "rightValue": "1448355464588038295",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "48341ddc-070d-406f-9a82-0d99062bef27",
+                    "leftValue": "={{ $('Webhook').item.json.body.channel.id }}",
+                    "rightValue": "1448367230629711882",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        992,
+        432
+      ],
+      "id": "471c2c42-39a0-4dd3-9784-cf2f28f82e43",
+      "name": "Switch3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "abc8997d-56b0-4155-a793-34c9a44c989b",
+              "leftValue": "={{ $('Webhook').item.json.body.channel.id }}",
+              "rightValue": "1448314315408146494",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "71e3f243-be16-455b-a078-e4415efee914",
+              "leftValue": "={{ $('Webhook').item.json.body.content.text }}",
+              "rightValue": "x",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1216,
+        288
+      ],
+      "id": "1389988e-cea5-4373-881f-6de017195bbf",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1401898745477464086",
+          "mode": "list",
+          "cachedResultName": "Requiem",
+          "cachedResultUrl": "https://discord.com/channels/1401898745477464086"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Webhook').item.json.body.channel.id }}",
+          "mode": "id"
+        },
+        "content": "Wrong usage.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        464
+      ],
+      "id": "a484b0ec-51ce-4064-bb39-d40b39b8c098",
+      "name": "Send a message3",
+      "webhookId": "a0b55537-e1f5-47a2-9963-c0de16a47c98",
+      "credentials": {
+        "discordBotApi": {
+          "id": "JYk8JN16vf4TvFFj",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "abc8997d-56b0-4155-a793-34c9a44c989b",
+              "leftValue": "={{ $('Webhook').item.json.body.channel.id }}",
+              "rightValue": "1448355464588038295",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "71e3f243-be16-455b-a078-e4415efee914",
+              "leftValue": "={{ $('Webhook').item.json.body.content.text }}",
+              "rightValue": "y",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1216,
+        464
+      ],
+      "id": "a6939a7d-8c4f-41e1-803a-c2843e89a1ca",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "abc8997d-56b0-4155-a793-34c9a44c989b",
+              "leftValue": "={{ $('Webhook').item.json.body.channel.id }}",
+              "rightValue": "1448367230629711882",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "71e3f243-be16-455b-a078-e4415efee914",
+              "leftValue": "={{ $('Webhook').item.json.body.content.text }}",
+              "rightValue": "z",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1216,
+        688
+      ],
+      "id": "7de27334-ead7-4ed1-94a8-347dda6531ed",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1401898745477464086",
+          "mode": "list",
+          "cachedResultName": "Requiem",
+          "cachedResultUrl": "https://discord.com/channels/1401898745477464086"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Webhook').item.json.body.channel.id }}",
+          "mode": "id"
+        },
+        "content": "Server is busy now. Please try again few seconds after.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        544,
+        672
+      ],
+      "id": "3f7e4407-c752-4389-9384-686b9317c010",
+      "name": "Send a message4",
+      "webhookId": "60f46517-d451-4082-b998-ae941e244030",
+      "credentials": {
+        "discordBotApi": {
+          "id": "JYk8JN16vf4TvFFj",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6fec2440-60af-4f86-a2b7-26010aa96e22",
+              "name": "channel",
+              "value": "={{ $json.body.content.text.split(' ')[0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -352,
+        560
+      ],
+      "id": "03d02676-c7cb-4a1f-aab1-0c06497c5162",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "content": "## Claiming Discord Message & Setting Up Which Channel is Message  Belongs\n",
+        "height": 288,
+        "width": 736,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -672,
+        464
+      ],
+      "typeVersion": 1,
+      "id": "8ab2d015-f071-46ba-875c-74026036b02a",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "17372adc-6569-424a-ad84-72e1f2bdcd00",
+      "name": "API1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        112
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "93e41251-cb4a-4190-9f59-dbf143079329",
+      "name": "API2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        304
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "659d9742-14a3-4f47-815b-e2cdfd982c97",
+      "name": "API3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        560
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "33050118-9188-4f13-bc48-79aa2e9e7d1d",
+      "name": "API4",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        800
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "1d4766d6-24a5-4d24-806e-997924c3f1a8",
+      "name": "API5",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        992
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.content.text }}",
+                    "rightValue": "EURUSD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "fe56116a-b438-492e-adba-a11a281ff68b"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "651fc27c-8451-4062-b05a-a225b9345469",
+                    "leftValue": "={{ $json.body.content.text }}",
+                    "rightValue": "GBPUSD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9da89d1e-33e4-4f89-bbd2-22d175a3eaec",
+                    "leftValue": "={{ $json.body.content.text }}",
+                    "rightValue": "USDJPY",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "651d9a64-6b13-4096-9582-623edcc0447e",
+                    "leftValue": "={{ $json.body.content.text }}",
+                    "rightValue": "AUDUSD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d5550e2e-9615-4041-995b-76dd32b2ae82",
+                    "leftValue": "={{ $json.body.content.text }}",
+                    "rightValue": "XAUUSD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        96,
+        512
+      ],
+      "id": "c77512b8-dd47-4e7c-bcaa-aade85a681f6",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "content": "## Finding Symbol and Call API\n",
+        "height": 1168,
+        "width": 422,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        64,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "68e9e8f8-63fd-4859-8f29-66cf6642b228",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Claiming Channel from Edit Fields node",
+        "height": 656,
+        "width": 198,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        496,
+        288
+      ],
+      "typeVersion": 1,
+      "id": "0a0d3406-2c28-4570-96c6-daef8ee30526",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Testing Right Command on Right Channel\n",
+        "height": 656,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        928,
+        288
+      ],
+      "typeVersion": 1,
+      "id": "945812e3-b1d8-4455-b255-9c13d697df4f",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trend": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Trend",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Volatility",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Liquidity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Volatility": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Liquidity": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch3": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API1": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API2": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API3": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API4": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API5": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "API1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/New_York",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "e302f29c-03d0-4c9b-b9b8-6e77129182d9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0c4f8b12eb7af6bc996cd05eeecacde8203e1ef5cb8181299cd28625a547b3bc"
+  },
+  "id": "G0ky3frKT4UjIEtjtoSBy",
+  "tags": []
+}

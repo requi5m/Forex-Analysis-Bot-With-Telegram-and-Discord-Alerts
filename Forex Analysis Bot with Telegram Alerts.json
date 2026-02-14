@@ -1,0 +1,962 @@
+{
+  "name": "Forex Analysis Bot with Telegram Alerts",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "EURUSD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "fe56116a-b438-492e-adba-a11a281ff68b"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "651fc27c-8451-4062-b05a-a225b9345469",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "GBPUSD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9da89d1e-33e4-4f89-bbd2-22d175a3eaec",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "USDJPY",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "651d9a64-6b13-4096-9582-623edcc0447e",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "AUDUSD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d5550e2e-9615-4041-995b-76dd32b2ae82",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "XAUUSD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        -688
+      ],
+      "id": "0b5c1dc0-96ee-406b-ae9b-07c3a5896d82",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/trend",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "48fa4d73-3229-4285-8b6a-aa79f58e7dd7"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ed9952b5-5c19-44b7-a9e1-2a375c741e3f",
+                    "leftValue": "={{ $json.messsage.text }}",
+                    "rightValue": "/volatility",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "674d6ed2-e510-43e1-9576-1a24da0021a5",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/liquidity",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -784,
+        -656
+      ],
+      "id": "cad0e8d6-548f-478f-a812-7949bf3ad94a",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node\nconst items = $input.all();\nlet results = [];\n\nfor (const item of items) {\n  // Veri json.data içinden geliyorsa onu yakala\n  const mainData = item.json.data;\n\n  // Güvenlik kontrolü: data var mı ve içinde kline_list var mı?\n  if (!mainData || !mainData.kline_list || !Array.isArray(mainData.kline_list)) {\n    results.push({ \n      json: { \n        error: \"Veri json.data.kline_list içinde bulunamadı!\",\n        debug: item.json // Neyin geldiğini görmek için\n      } \n    });\n    continue;\n  }\n\n  const list = mainData.kline_list;\n\n  // 1. Değerleri sayıya çevirerek listele\n  const highs = list.map(k => parseFloat(k.high_price));\n  const lows = list.map(k => parseFloat(k.low_price));\n  const closes = list.map(k => parseFloat(k.close_price));\n\n  // 2. En büyük (Resistance) ve En küçük (Support) bul\n  const resistance = Math.max(...highs);\n  const support = Math.min(...lows);\n\n  // 3. Trend Ölçümü\n  const firstPrice = closes[0];\n  const lastPrice = closes[closes.length - 1];\n  \n  let trend = \"SIDEWAYS\";\n  if (lastPrice > firstPrice) trend = \"bullish\";\n  if (lastPrice < firstPrice) trend = \"bearish\";\n\n  // 4. Çıktı formatı\n  results.push({\n    json: {\n      symbol: mainData.code || \"AUDUSD\",\n      support: support,\n      resistance: resistance,\n      trend: trend,\n      last_price: lastPrice,\n      data_points: list.length\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        -528
+      ],
+      "id": "127b3b6f-e131-4864-a166-627ba33af76d",
+      "name": "Trend"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6fec2440-60af-4f86-a2b7-26010aa96e22",
+              "name": "channel",
+              "value": "={{ $json.message.text.split(' ')[0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1008,
+        -640
+      ],
+      "id": "cdd4a63b-7fbf-476a-b5e1-a9c6fddc4e9c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Edit Fields').item.json.message.text }}",
+                    "rightValue": "/trend",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "6a44a6f8-dbe9-4b45-9b7f-c09e2f2754a5"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "46cd1556-e571-4338-92fc-1966872c762d",
+                    "leftValue": "={{ $('Edit Fields').item.json.message.text }}",
+                    "rightValue": "/volatility",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a04ea9bf-c13c-446c-a10c-f5e626574086",
+                    "leftValue": "={{ $('Edit Fields').item.json.message.text }}",
+                    "rightValue": "/liquidity",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        -448
+      ],
+      "id": "6a9e91f8-e953-47cf-8c42-d6b28b6759aa",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node\nconst items = $input.all();\nlet results = [];\n\nfor (const item of items) {\n  // Veri json.data içinden geliyorsa onu yakala\n  const mainData = item.json.data;\n\n  // Güvenlik kontrolü\n  if (!mainData || !mainData.kline_list || !Array.isArray(mainData.kline_list)) {\n    results.push({ \n      json: { \n        error: \"Veri json.data.kline_list içinde bulunamadı!\",\n        debug: item.json \n      } \n    });\n    continue;\n  }\n\n  const list = mainData.kline_list;\n\n  // 1. Değerleri sayıya çevir\n  const highs = list.map(k => parseFloat(k.high_price));\n  const lows = list.map(k => parseFloat(k.low_price));\n  const closes = list.map(k => parseFloat(k.close_price));\n\n  // 2. Volatilite Hesaplamaları\n  \n  // A. Yüzdesel Değişim (Aralık bazlı)\n  const maxPrice = Math.max(...highs);\n  const minPrice = Math.min(...lows);\n  const rangeVolatility = ((maxPrice - minPrice) / minPrice) * 100;\n\n  // B. Ortalama Günlük Hareket (High - Low farklarının ortalaması)\n  const dailyRanges = highs.map((h, i) => h - lows[i]);\n  const avgMovement = dailyRanges.reduce((a, b) => a + b, 0) / dailyRanges.length;\n\n  // 3. Volatilite Durumu Belirleme (Örnek eşik değerleri)\n  let status = \"low\";\n  if (rangeVolatility > 2) status = \"medium\";\n  if (rangeVolatility > 5) status = \"high\";\n\n  // 4. Çıktı formatı\n  results.push({\n    json: {\n      symbol: mainData.code || \"AUDUSD\",\n      volatility_percent: parseFloat(rangeVolatility.toFixed(2)), // % cinsinden toplam oynaklık\n      avg_price_swing: parseFloat(avgMovement.toFixed(5)), // Ortalama mum boyu\n      volatility_status: status,\n      highest_point: maxPrice,\n      lowest_point: minPrice,\n      data_points: list.length\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        -336
+      ],
+      "id": "9a6892af-2078-4ef0-bcb9-4197adf0d4be",
+      "name": "Volatility"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node - Professional Liquidity & Range Analysis\nconst items = $input.all();\nlet results = [];\n\nfor (const item of items) {\n  const mainData = item.json.data;\n\n  // Güvenlik kontrolü\n  if (!mainData || !mainData.kline_list || !Array.isArray(mainData.kline_list)) {\n    results.push({ \n      json: { \n        error: \"Veri json.data.kline_list içinde bulunamadı!\",\n        debug: item.json \n      } \n    });\n    continue;\n  }\n\n  const list = mainData.kline_list;\n\n  // 1. Sayısal Dönüşümler\n  const volumes = list.map(k => parseFloat(k.volume || 0));\n  const highs = list.map(k => parseFloat(k.high_price));\n  const lows = list.map(k => parseFloat(k.low_price));\n\n  // 2. Range (Aralık) ve Hacim Hesaplamaları\n  const maxPrice = Math.max(...highs);\n  const minPrice = Math.min(...lows);\n  const totalVolume = volumes.reduce((a, b) => a + b, 0);\n  const avgVolume = totalVolume / list.length;\n\n  // 3. Likidite Verimlilik Skoru (Hacim / Fiyat Aralığı)\n  const priceRange = maxPrice - minPrice;\n  const liquidityScore = priceRange !== 0 ? (totalVolume / priceRange) : 0;\n\n  // 4. Likidite Durumu Belirleme\n  let status = \"thin\";\n  if (liquidityScore > 2500) status = \"moderate\";\n  if (liquidityScore > 10000) status = \"deep\";\n\n  // 5. Çıktı Formatı\n  results.push({\n    json: {\n      symbol: mainData.code || \"AUDUSD\",\n      high: maxPrice,\n      low: minPrice,\n      liquidity_score: parseFloat(liquidityScore.toFixed(2)),\n      liquidity_status: status,\n      avg_volume: parseFloat(avgVolume.toFixed(2)),\n      total_volume: totalVolume,\n      data_points: list.length\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        -720
+      ],
+      "id": "11982bd4-5265-4b49-9f29-387e83c68eef",
+      "name": "Liquidity"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message.text }}",
+                    "rightValue": "/trend",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "b7794911-88e3-470f-9420-2d3ae71525b7"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0487a018-3fe2-4fa1-899e-e30b7d8c58b2",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message.text }}",
+                    "rightValue": "/volatility",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "48341ddc-070d-406f-9a82-0d99062bef27",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message.text }}",
+                    "rightValue": "/liquidity",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        -448
+      ],
+      "id": "a6466431-b6da-4451-99b8-ee8a71f7aa2e",
+      "name": "Switch3"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1232,
+        -640
+      ],
+      "id": "49f611f8-0dc6-4f1b-9b0c-176dd515fd99",
+      "name": "Telegram Trigger",
+      "webhookId": "84a9c6bf-0506-4c2d-9523-973b348a172d",
+      "credentials": {
+        "telegramApi": {
+          "id": "kh9wBGA5l4xcaUGk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "=Server is busy now. Please try again few seconds after.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -112,
+        -640
+      ],
+      "id": "968d1720-69d3-4ccd-a36b-e1475a1b21f4",
+      "name": "Send a text message",
+      "webhookId": "9b8333f1-f296-4339-a4c0-18bb633226cc",
+      "credentials": {
+        "telegramApi": {
+          "id": "kh9wBGA5l4xcaUGk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.symbol }} is in a {{ $json.trend }} trend. Support level is at {{ $json.support }} and resistance level is at {{ $json.resistance }}.\n\nRequiem - {{ $now.format('hh:MM') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        -528
+      ],
+      "id": "bd98e099-e59e-44a6-bce2-93520c5fbb8c",
+      "name": "Send a text message1",
+      "webhookId": "9b8333f1-f296-4339-a4c0-18bb633226cc",
+      "credentials": {
+        "telegramApi": {
+          "id": "kh9wBGA5l4xcaUGk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "=Volatility for {{ $json.symbol }} is currently {{ $json.volatility_status }}. The range is between high ({{ $json.highest_point }}) and low ({{ $json.lowest_point }}) prices.\n\nRequiem - {{ $now.format('hh:MM') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        -336
+      ],
+      "id": "a09dd18a-5dd5-47f6-ba50-0e1cac04bba1",
+      "name": "Send a text message2",
+      "webhookId": "9b8333f1-f296-4339-a4c0-18bb633226cc",
+      "credentials": {
+        "telegramApi": {
+          "id": "kh9wBGA5l4xcaUGk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "=Volatility for {{ $json.symbol }} is currently {{ $json.volatility_status }}. The range is between high ({{ $json.highest_point }}) and low ({{ $json.lowest_point }}) prices.\n\nRequiem - {{ $now.format('hh:MM') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        -720
+      ],
+      "id": "f19c1f73-2981-4047-bace-0804367fee84",
+      "name": "Send a text message3",
+      "webhookId": "9b8333f1-f296-4339-a4c0-18bb633226cc",
+      "credentials": {
+        "telegramApi": {
+          "id": "kh9wBGA5l4xcaUGk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Claiming Telegram Message & Finding Which Command It Belongss",
+        "height": 288,
+        "width": 736,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1360,
+        -704
+      ],
+      "typeVersion": 1,
+      "id": "2acca32b-aff7-4112-881d-b8c6bb55c341",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "## Finding Symbol and Call API\n",
+        "height": 1168,
+        "width": 422,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -608,
+        -1088
+      ],
+      "typeVersion": 1,
+      "id": "acb2909d-925a-4753-bf2a-3f6406d1aebb",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Claiming Command from Edit Fields node",
+        "height": 656,
+        "width": 198,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -176,
+        -800
+      ],
+      "typeVersion": 1,
+      "id": "bdb8221f-6dae-4d15-901e-077fcc0137ef",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Testing Right Command on Right Analysis Tool\n\n",
+        "height": 656,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        272,
+        -800
+      ],
+      "typeVersion": 1,
+      "id": "55789199-880c-48d7-8dc5-2526aac3828c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "8d1036f7-1d23-41e8-99c7-ee9a271f9c32",
+      "name": "API1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -336,
+        -976
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "2914926d-9772-4ae9-8ad5-0730c1353050",
+      "name": "API2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -336,
+        -784
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "720a0d92-d377-43de-bf9c-d561324c6656",
+      "name": "API3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -336,
+        -544
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://quote.alltick.io/quote-b-api/kline?token=1193feb0e09b5a0c3832112eb78e304c-c-app&query={\"data\":{\"code\":\"USDJPY\",\"kline_type\":\"2\",\"kline_timestamp_end\":\"0\",\"query_kline_num\":\"50\",\"adjust_type\":\"0\"}}",
+        "options": {}
+      },
+      "id": "edaec26d-30f4-477d-9c98-ead66714518b",
+      "name": "API4",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -336,
+        -288
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://quote.alltick.io/quote-b-api/kline?token=1193feb0e09b5a0c3832112eb78e304c-c-app&query={\"data\":{\"code\":\"AUDUSD\",\"kline_type\":\"2\",\"kline_timestamp_end\":\"0\",\"query_kline_num\":\"50\",\"adjust_type\":\"0\"}}",
+        "options": {}
+      },
+      "id": "5bc63595-a38f-4cbf-b6f0-794a0dcacc43",
+      "name": "API5",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -336,
+        -96
+      ],
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "API1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trend": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Trend",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Volatility",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Liquidity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Volatility": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Liquidity": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch3": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API1": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API2": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API3": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API4": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API5": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "323eb986-e6de-4b92-8ff5-cbb920434032",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0c4f8b12eb7af6bc996cd05eeecacde8203e1ef5cb8181299cd28625a547b3bc"
+  },
+  "id": "Xy41YKW2JBNlTTDU3NATU",
+  "tags": []
+}
