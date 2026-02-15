@@ -1,4 +1,4 @@
-# Trend Analysis Bot with Telegram & Discord Alerts
+# Forex Analysis Bot with Telegram & Discord Alerts
 
 
 
