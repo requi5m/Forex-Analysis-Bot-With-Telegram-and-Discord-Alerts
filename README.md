@@ -1,4 +1,4 @@
-# Forex Analysis Bot with Telegram & Discord Alerts
+# ![Forex](https://img.shields.io/badge/Market-Forex-blue) Forex Analysis Bot with Telegram & Discord Alerts
 
 
 
