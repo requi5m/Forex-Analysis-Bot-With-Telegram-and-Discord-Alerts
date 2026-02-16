@@ -1,7 +1,4 @@
-# ![Trend](https://img.shields.io/badge/Module-Trend-blue)
-![Volatility](https://img.shields.io/badge/Module-Volatility-red)
-![Liquidity](https://img.shields.io/badge/Module-Liquidity-purple)
-![Market](https://img.shields.io/badge/Asset-Forex-green) Forex Analysis Bot with Telegram & Discord Alerts
+# Forex Analysis Bot with Telegram & Discord Alerts
 
 
 
